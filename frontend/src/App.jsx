@@ -1,11 +1,5 @@
-
 function App() {
-
-  return (
-    <div>
-        Hello world
-    </div>
-  )
+  return <div>this is payment wallet</div>;
 }
 
-export default App
+export default App;
