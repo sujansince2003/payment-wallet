@@ -79,22 +79,28 @@ router.put("/update", authMiddlware, async (req, res) => {
     return res.status(400).json({ message: "invalid input" });
   }
   const { email, username, password } = req.body;
+  if (!req.userID) {
+    return res
+      .status(400)
+      .json({ message: "Unauthorized:UserID not provided" });
+  }
   const user = await User.findOne({
-    $or: [{ username }, { email }],
+    _id: req.userID,
   });
   if (!user) {
     return res.status(403).json({ message: "user doesnot exist" });
   }
-  const HashedPassword = await bcrypt.hash(password, 10);
+
+  const updateData = {};
+  if (username) updateData.username = username;
+  if (email) updateData.email = email;
+  if (password) updateData.password = await bcrypt.hash(password, 10);
+
   const updateUser = await User.findOneAndUpdate(
     {
       _id: req.userID,
     },
-    {
-      username,
-      email,
-      password: HashedPassword,
-    },
+    updateData,
     { new: true }
   );
   updateUser
