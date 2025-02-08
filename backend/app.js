@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import Userroutes from "./routes/user.route.js";
+import UserRoutes from "./routes/user.route.js";
+import accountRoutes from "./routes/account.route.js";
 
 import cookieParser from "cookie-parser";
 
@@ -14,5 +15,6 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use("/api/v1/user", Userroutes);
+app.use("/api/v1/user", UserRoutes);
+app.use("/api/v1/account", accountRoutes);
 export default app;
