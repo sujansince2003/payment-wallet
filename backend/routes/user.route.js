@@ -4,6 +4,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import authMiddlware from "./middlewares/auth.middleware.js";
+import { Account } from "../models/account.model.js";
 
 const router = Router();
 console.log(process.env.JWT_SECRET);
@@ -28,14 +29,23 @@ router.post("/signup", async (req, res) => {
   const hashPassword = await bcrypt.hash(password, 10);
   try {
     const user = new User({ email, username, password: hashPassword });
+
     await user.save();
+    const userID = user._id;
+    const account = await Account.create({
+      userID,
+      balance: 1 + Math.random() * 10000,
+    });
     const jwtToken = jwt.sign(
       { username: user.username, userID: user._id },
       process.env.JWT_SECRET
     );
-    return res
-      .status(201)
-      .json({ message: "user created successfully", token: jwtToken, user });
+    return res.status(201).json({
+      message: "user created successfully",
+      token: jwtToken,
+      user,
+      account,
+    });
   } catch (error) {
     console.log("e1", error);
   }
