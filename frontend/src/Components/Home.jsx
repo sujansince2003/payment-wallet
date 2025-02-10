@@ -1,4 +1,11 @@
 import { Link } from "react-router-dom";
+import API from "../axiosInstance.js";
+
+async function callapi() {
+  console.log("hello");
+  const res = await API.get("/user/sayhello");
+  console.log(res);
+}
 
 export default function Home() {
   return (
@@ -17,6 +24,7 @@ export default function Home() {
         </div>
       </header>
 
+      <button onClick={callapi}>sayhello</button>
       <main className="flex-grow container mx-auto px-4 py-8">
         <section className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4">Welcome to PayWallet</h2>
