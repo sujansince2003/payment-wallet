@@ -13,6 +13,11 @@ const schema = z.object({
   username: z.string(),
   password: z.string(),
 });
+const Loginschema = z.object({
+  email: z.string().email(),
+  username: z.string().optional(),
+  password: z.string(),
+});
 
 //route for signup
 router.post("/signup", async (req, res) => {
@@ -54,7 +59,7 @@ router.post("/signup", async (req, res) => {
 //route for login
 
 router.post("/login", async (req, res) => {
-  const validateInput = schema.safeParse(req.body);
+  const validateInput = Loginschema.safeParse(req.body);
   if (!validateInput.success) {
     return res.status(400).json({ message: validateInput.error.message });
   }
