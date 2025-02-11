@@ -47,8 +47,8 @@ router.get("/getbalance", authMiddlware, async (req, res) => {
 });
 
 router.post("/transfer", authMiddlware, async (req, res) => {
+  const session = await mongoose.startSession();
   try {
-    const session = await mongoose.startSession();
     // This starts a new session for the database operations.
     session.startTransaction();
     const userID = req.userID;
