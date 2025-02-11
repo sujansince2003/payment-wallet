@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../axiosInstance";
 
@@ -37,26 +37,40 @@ const Dashboard = () => {
     accountInfo();
   }, [token, transferSuccess]);
 
-  async function showAllusers() {
-    if (allusers) {
-      setShowusers(!showusers);
-      return;
+  const username = useMemo(() => {
+    if (userData) {
+      return userData?.account?.userID?.username;
+    } else {
+      return "user";
     }
-    try {
-      const res = await API.get("/account", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const response = await res.data;
+  }, [userData]);
+  const balance = useMemo(() => {
+    return userData?.account?.balance.toFixed(2);
+  }, [userData]);
 
-      setAllusers(response.accounts);
+  const showAllusers = useCallback(
+    async function () {
+      if (allusers) {
+        setShowusers(!showusers);
+        return;
+      }
+      try {
+        const res = await API.get("/account", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const response = await res.data;
 
-      setShowusers(true);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
-  }
+        setAllusers(response.accounts);
+
+        setShowusers(true);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    },
+    [allusers, showusers, token]
+  );
 
   function handleInputChange(e) {
     setTransferData({
@@ -67,24 +81,28 @@ const Dashboard = () => {
   }
   async function handleTransfer(e) {
     e.preventDefault();
-    const response = await API.post(
-      "/account/transfers",
-      {
-        receiverID: transferData.receiverID,
-        amount: Number(transferData.amount),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+    try {
+      const response = await API.post(
+        "/account/transfers",
+        {
+          receiverID: transferData.receiverID,
+          amount: Number(transferData.amount),
         },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.status !== 200 && response.status !== 201) {
+        return;
       }
-    );
-    if (response.status !== 200) {
-      return;
-    }
-    if (response.status === 200) {
-      setTransferSuccess(true);
-      setTransferFund(!transferFund);
+      if (response.status === 200) {
+        setTransferSuccess(true);
+        setTransferFund(!transferFund);
+      }
+    } catch (error) {
+      alert("transfer failed");
     }
   }
   function handleLogout() {
@@ -118,14 +136,9 @@ const Dashboard = () => {
           ) : (
             <>
               <h1 className="text-xl font-bold">
-                Hello {userData?.account?.userID?.username}
+                Hello {username ? username : "-------"}
               </h1>
-              <h2>
-                Current Balance :{" "}
-                {typeof userData?.account?.balance === "number"
-                  ? userData?.account?.balance.toFixed(2)
-                  : NaN}
-              </h2>
+              <h2>Current Balance : {balance}</h2>
             </>
           )}
         </div>
