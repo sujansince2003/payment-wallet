@@ -1,7 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import API from "../axiosInstance";
 import { useState } from "react";
 
 const Signin = () => {
+  const navigate = useNavigate();
   const [formData, setFormdata] = useState({
     email: "",
     password: "",
@@ -20,6 +22,8 @@ const Signin = () => {
     try {
       const res = await API.post("/user/login", formData);
       console.log(res);
+      localStorage.setItem("token", res.data.token);
+      navigate("/dashboard");
     } catch (error) {
       console.log(error);
     }
