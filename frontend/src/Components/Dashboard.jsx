@@ -8,7 +8,15 @@ const Dashboard = () => {
   const [showusers, setShowusers] = useState(false);
   const [allusers, setAllusers] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [transferFund, setTransferFund] = useState(false);
+  const [transferSuccess, setTransferSuccess] = useState(false);
+
+  const [transferData, setTransferData] = useState({
+    receiverID: "",
+    amount: 0,
+  });
   const token = localStorage.getItem("token");
+
   useEffect(() => {
     const accountInfo = async () => {
       try {
@@ -27,7 +35,7 @@ const Dashboard = () => {
       }
     };
     accountInfo();
-  }, [token]);
+  }, [token, transferSuccess]);
 
   async function showAllusers() {
     if (allusers) {
@@ -50,6 +58,35 @@ const Dashboard = () => {
     }
   }
 
+  function handleInputChange(e) {
+    setTransferData({
+      ...transferData,
+      [e.target.name]:
+        e.target.name === "amount" ? Number(e.target.value) : e.target.value,
+    });
+  }
+  async function handleTransfer(e) {
+    e.preventDefault();
+    const response = await API.post(
+      "/account/transfers",
+      {
+        receiverID: transferData.receiverID,
+        amount: Number(transferData.amount),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (response.status !== 200) {
+      return;
+    }
+    if (response.status === 200) {
+      setTransferSuccess(true);
+      setTransferFund(!transferFund);
+    }
+  }
   function handleLogout() {
     localStorage.removeItem("token");
     navigate("/login");
@@ -69,7 +106,7 @@ const Dashboard = () => {
           </button>
         </nav>
       </header>
-      a
+
       <div className="flex justify-between items-center mx-12">
         <div className="p-6 border-1 border-gray-500 w-72 rounded-lg m-4">
           {loading ? (
@@ -100,9 +137,56 @@ const Dashboard = () => {
           >
             Show all users
           </button>
-          <button className="bg-amber-300 p-3 rounded-xl">Transfer Fund</button>
+          <button
+            onClick={() => setTransferFund(!transferFund)}
+            className="bg-amber-300 p-3 rounded-xl"
+          >
+            Transfer Fund
+          </button>
         </div>
       </div>
+      {transferFund && (
+        <>
+          <div>
+            <form
+              className="flex mx-12 p-6 flex-col justify-center items-center gap-2 "
+              onSubmit={handleTransfer}
+            >
+              <div>
+                <label htmlFor="ReceiverID">ReceiverID</label>
+                <input
+                  className="border-2 border-blue-400"
+                  type="text"
+                  name="receiverID"
+                  id=""
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <label htmlFor="amount">Amount</label>
+                <input
+                  className="border-2 border-blue-400"
+                  type="number"
+                  onChange={handleInputChange}
+                  name="amount"
+                  id=""
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={!transferData.receiverID || transferData.amount <= 0}
+                className={`p-3 rounded-xl ${
+                  transferData.receiverID && transferData.amount > 0
+                    ? "bg-amber-300"
+                    : "bg-gray-400"
+                }`}
+              >
+                Send Money
+              </button>
+            </form>
+          </div>
+        </>
+      )}
       {showusers && (
         <div className="flex flex-wrap  justify-start items-center m-12">
           {allusers?.map((user) => {
