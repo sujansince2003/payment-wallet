@@ -10,7 +10,7 @@ const transferSchema = z.object({
   amount: z.number(),
 });
 router.get("/", authMiddlware, async (req, res) => {
-  const accounts = await Account.find();
+  const accounts = await Account.find().populate("userID");
   return res.status(200).json({ accounts });
 });
 
