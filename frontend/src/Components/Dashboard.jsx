@@ -6,9 +6,10 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [userData, setUserdata] = useState(null);
   const [showusers, setShowusers] = useState(false);
+  const [allusers, setAllusers] = useState(null);
   const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
   useEffect(() => {
-    const token = localStorage.getItem("token");
     const accountInfo = async () => {
       try {
         const res = await API.get("/account/getUserAccountInfo", {
@@ -26,7 +27,28 @@ const Dashboard = () => {
       }
     };
     accountInfo();
-  }, []);
+  }, [token]);
+
+  async function showAllusers() {
+    if (allusers) {
+      setShowusers(!showusers);
+      return;
+    }
+    try {
+      const res = await API.get("/account", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const response = await res.data;
+
+      setAllusers(response.accounts);
+
+      setShowusers(true);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  }
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -47,6 +69,7 @@ const Dashboard = () => {
           </button>
         </nav>
       </header>
+      a
       <div className="flex justify-between items-center mx-12">
         <div className="p-6 border-1 border-gray-500 w-72 rounded-lg m-4">
           {loading ? (
@@ -72,9 +95,7 @@ const Dashboard = () => {
 
         <div className="flex gap-2 justify-between">
           <button
-            onClick={() => {
-              setShowusers(true);
-            }}
+            onClick={showAllusers}
             className="bg-amber-300 p-3 rounded-xl"
           >
             Show all users
@@ -84,10 +105,19 @@ const Dashboard = () => {
       </div>
       {showusers && (
         <div className="flex flex-wrap  justify-start items-center m-12">
-          <div className="p-6 border-1 border-gray-500 w-[500px] rounded-lg m-4">
-            <h1 className="text-xl font-bold">Hello sujan</h1>
-            <h2>Current Balance : 500</h2>
-          </div>
+          {allusers?.map((user) => {
+            return (
+              <div
+                key={user._id}
+                className="p-6 border-1 border-gray-500 w-[500px] rounded-lg m-4"
+              >
+                <h1 className="text-xl font-bold">
+                  username: {user?.userID?.username}
+                </h1>
+                <h2> UserID: {user?.userID?._id}</h2>
+              </div>
+            );
+          })}
         </div>
       )}
     </>
